@@ -109,11 +109,11 @@ export default function WorldPage() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const baseTile = 6;
+    const baseTile = showIntro ? 6 : 10;
     const tileSize = baseTile * zoom;
 
-    const viewW = Math.max(1, Math.ceil(viewport.w / tileSize));
-    const viewH = Math.max(1, Math.ceil(viewport.h / tileSize));
+    const viewW = Math.max(1, Math.min(worldSize, Math.floor(worldSize / 2)));
+    const viewH = Math.max(1, Math.min(worldSize, Math.floor(worldSize / 2)));
 
     const focus = players[0] || npcs[0] || animals[0] || { x: worldSize / 2, y: worldSize / 2 };
 
@@ -167,14 +167,14 @@ export default function WorldPage() {
     setZoom((z) => Math.min(4, Math.max(0.5, +(z + delta).toFixed(2))));
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    dragRef.current = { x: e.clientX, y: e.clientY, panX: pan?.x || 0, panY: pan?.y || 0 };
-  };
-
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!dragRef.current) return;
-    const baseTile = 6;
+    if (showIntro) return;
+    const baseTile = showIntro ? 6 : 10;
     const tileSize = baseTile * zoom;
+    if (!dragRef.current) {
+      dragRef.current = { x: e.clientX, y: e.clientY, panX: pan?.x || 0, panY: pan?.y || 0 };
+      return;
+    }
     const dx = (e.clientX - dragRef.current.x) / tileSize;
     const dy = (e.clientY - dragRef.current.y) / tileSize;
     setPan({ x: Math.floor(dragRef.current.panX - dx), y: Math.floor(dragRef.current.panY - dy) });
@@ -192,11 +192,9 @@ export default function WorldPage() {
         <div
           ref={containerRef}
           className="bg-black"
-          style={{ width: 1080, height: 512, transform: `scale(${scale})`, transformOrigin: 'center center' }}
+          style={{ width: 1080, height: 512, transform: `scale(${scale})`, transformOrigin: 'center center', cursor: showIntro ? 'auto' : 'none' }}
           onWheel={handleWheel}
-          onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
-          onMouseUp={stopDrag}
           onMouseLeave={stopDrag}
         >
           <canvas ref={canvasRef} className="block w-full h-full" />
