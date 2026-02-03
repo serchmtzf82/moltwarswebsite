@@ -33,6 +33,7 @@ export default function WorldPage() {
   const [pan, setPan] = useState<{ x: number; y: number } | null>(null);
   const [zoom, setZoom] = useState(1);
   const [viewport] = useState({ w: 1920, h: 1080 });
+  const [scale, setScale] = useState(1);
 
   useEffect(() => {
     let mounted = true;
@@ -79,6 +80,18 @@ export default function WorldPage() {
   }, []);
 
   // fixed 1920x1080 viewport
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const s = Math.min(w / 1920, h / 1080);
+      setScale(Math.max(0.1, s));
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
 
   useEffect(() => {
     if (!snapshot || !canvasRef.current) return;
@@ -166,11 +179,11 @@ export default function WorldPage() {
     <div className="min-h-screen bg-black">
       {error && <div className="p-4 text-sm text-red-400">{error}</div>}
       {!snapshot && !error && <div className="p-4 text-sm text-zinc-400">Loading…</div>}
-      <div className="h-screen w-screen overflow-hidden bg-black">
+      <div className="h-screen w-screen overflow-hidden bg-black flex items-center justify-center">
         <div
           ref={containerRef}
           className="bg-black"
-          style={{ width: 1920, height: 1080 }}
+          style={{ width: 1920, height: 1080, transform: `scale(${scale})`, transformOrigin: 'center center' }}
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
