@@ -140,6 +140,18 @@ export default function WorldPage() {
     const viewW = Math.max(1, Math.min(worldSize, Math.ceil(viewport.w / tileSize)));
     const viewH = Math.max(1, Math.min(worldSize, Math.ceil(viewport.h / tileSize)));
 
+    if (pan) {
+      const clamped = {
+        x: Math.max(0, Math.min(worldSize - viewW, pan.x)),
+        y: Math.max(0, Math.min(worldSize - viewH, pan.y)),
+      };
+      if (clamped.x !== pan.x || clamped.y !== pan.y) {
+        setPan(clamped);
+        panCenterRef.current = clamped;
+        return;
+      }
+    }
+
     // compute global surface (y=0 reference) as average first non-sky tile
     let sum = 0;
     let count = 0;
