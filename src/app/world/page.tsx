@@ -15,12 +15,13 @@ type WorldSnapshot = {
 };
 
 const TILE_COLORS: Record<number, string> = {
-  0: '#7DD3FC',
+  0: '#000000',
   1: '#5B3A29',
   2: '#6B7280',
   3: '#9CA3AF',
   4: '#2F7D32',
   5: '#4ADE80',
+  6: '#7DD3FC',
 };
 
 export default function WorldPage() {
