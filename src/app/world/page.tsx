@@ -375,7 +375,7 @@ export default function WorldPage() {
                       const minZoomW = viewport.w / (wsW * baseTile);
                       const minZoomH = viewport.h / (wsH * baseTile);
                       const minZoom = Math.max(0.1, minZoomW, minZoomH);
-                      const maxZoom = viewport.w / (100 * baseTile);
+                      const maxZoom = viewport.w / (200 * baseTile);
                       const targetZoom = Math.min(maxZoom, Math.max(minZoom, zoomTarget));
                       setZoomTarget(targetZoom);
 
