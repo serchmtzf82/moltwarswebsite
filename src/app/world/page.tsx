@@ -78,51 +78,52 @@ export default function WorldPage() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const scale = 1; // 1px per tile for minimap
-    canvas.width = worldSize * scale;
-    canvas.height = worldSize * scale;
+    // Side-view window
+    const viewW = 96;
+    const viewH = 54;
+    const tileSize = 6;
 
-    // draw tiles
-    const imageData = ctx.createImageData(worldSize, worldSize);
-    for (let i = 0; i < tiles.length; i++) {
-      const color = TILE_COLORS[tiles[i]] || '#000';
-      const r = parseInt(color.slice(1, 3), 16);
-      const g = parseInt(color.slice(3, 5), 16);
-      const b = parseInt(color.slice(5, 7), 16);
-      const idx = i * 4;
-      imageData.data[idx] = r;
-      imageData.data[idx + 1] = g;
-      imageData.data[idx + 2] = b;
-      imageData.data[idx + 3] = 255;
+    const focus = players[0] || npcs[0] || animals[0] || { x: worldSize / 2, y: worldSize / 2 };
+    const startX = Math.max(0, Math.floor(focus.x - viewW / 2));
+    const startY = Math.max(0, Math.floor(focus.y - viewH / 2));
+
+    const clampedStartX = Math.min(startX, worldSize - viewW);
+    const clampedStartY = Math.min(startY, worldSize - viewH);
+
+    canvas.width = viewW * tileSize;
+    canvas.height = viewH * tileSize;
+
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let y = 0; y < viewH; y++) {
+      for (let x = 0; x < viewW; x++) {
+        const wx = clampedStartX + x;
+        const wy = clampedStartY + y;
+        const tile = tiles[wy * worldSize + wx] || 0;
+        const color = TILE_COLORS[tile] || '#000';
+        ctx.fillStyle = color;
+        ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+      }
     }
-    ctx.putImageData(imageData, 0, 0);
+
+    const toScreen = (x: number, y: number) => {
+      return {
+        sx: Math.floor((x - clampedStartX) * tileSize),
+        sy: Math.floor((y - clampedStartY) * tileSize),
+      };
+    };
 
     const drawEntity = (x: number, y: number, color: string) => {
+      const { sx, sy } = toScreen(x, y);
+      if (sx < 0 || sy < 0 || sx >= canvas.width || sy >= canvas.height) return;
       ctx.fillStyle = color;
-      ctx.fillRect(x, y, 2, 2);
+      ctx.fillRect(sx, sy, tileSize, tileSize);
     };
 
     animals.forEach((a) => drawEntity(Math.floor(a.x), Math.floor(a.y), '#F59E0B'));
     npcs.forEach((n) => drawEntity(Math.floor(n.x), Math.floor(n.y), '#22D3EE'));
     players.forEach((p) => drawEntity(Math.floor(p.x), Math.floor(p.y), '#F472B6'));
-
-    // name tags (simple text overlay)
-    ctx.font = '6px monospace';
-    ctx.fillStyle = '#FFFFFF';
-    npcs.forEach((n) => ctx.fillText(n.name, Math.floor(n.x) + 2, Math.floor(n.y) - 2));
-    players.forEach((p) => ctx.fillText(p.name, Math.floor(p.x) + 2, Math.floor(p.y) - 2));
-
-    // skins (draw tiny 8x8 if available)
-    const drawSkin = (x: number, y: number, skin?: string) => {
-      if (!skin) return;
-      const img = new Image();
-      img.src = `${CDN}${skin}.png`;
-      img.onload = () => {
-        ctx.drawImage(img, x - 4, y - 4, 8, 8);
-      };
-    };
-    npcs.forEach((n) => drawSkin(Math.floor(n.x), Math.floor(n.y), n.skin));
-    players.forEach((p) => drawSkin(Math.floor(p.x), Math.floor(p.y), p.skin));
   }, [snapshot]);
 
   return (
