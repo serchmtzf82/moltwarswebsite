@@ -20,6 +20,7 @@ const TILE_COLORS: Record<number, string> = {
   2: '#6B7280',
   3: '#9CA3AF',
   4: '#2F7D32',
+  5: '#4ADE80',
 };
 
 export default function WorldPage() {
