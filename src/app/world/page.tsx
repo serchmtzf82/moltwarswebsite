@@ -36,8 +36,7 @@ export default function WorldPage() {
   const [error, setError] = useState<string | null>(null);
   const [pan, setPan] = useState<{ x: number; y: number } | null>(null);
   const [zoom, setZoom] = useState(1);
-  const [viewport] = useState({ w: 1080, h: 512 });
-  const [scale, setScale] = useState(1);
+  const [viewport, setViewport] = useState({ w: 1920, h: 1080 });
   const [showIntro, setShowIntro] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [chat, setChat] = useState<Array<{ ts: number; message: string }>>([]);
@@ -94,13 +93,12 @@ export default function WorldPage() {
     };
   }, []);
 
-  // fixed 1920x1080 viewport
+  // viewport follows window size
   useEffect(() => {
     const update = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      const s = Math.min(w / 1080, h / 512);
-      setScale(Math.max(0.1, s));
+      setViewport({ w, h });
     };
     update();
     window.addEventListener('resize', update);
@@ -139,8 +137,8 @@ export default function WorldPage() {
     const baseTile = showIntro ? 6 : 14;
     const tileSize = baseTile * zoom;
 
-    const viewW = Math.max(1, Math.min(worldSize, Math.floor(worldSize / 2)));
-    const viewH = Math.max(1, Math.min(worldSize, Math.floor(worldSize / 2)));
+    const viewW = Math.max(1, Math.min(worldSize, Math.ceil(viewport.w / tileSize)));
+    const viewH = Math.max(1, Math.min(worldSize, Math.ceil(viewport.h / tileSize)));
 
     // compute global surface (y=0 reference) as average first non-sky tile
     let sum = 0;
@@ -258,8 +256,8 @@ export default function WorldPage() {
       <div className="h-screen w-screen overflow-hidden bg-black flex items-center justify-center relative">
         <div
           ref={containerRef}
-          className="bg-black"
-          style={{ width: 1080, height: 512, transform: `scale(${scale})`, transformOrigin: 'center center', cursor: isDragging ? 'grabbing' : 'grab' }}
+          className="bg-black w-full h-full"
+          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
