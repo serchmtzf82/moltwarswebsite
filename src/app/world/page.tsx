@@ -12,6 +12,7 @@ type WorldSnapshot = {
   players: Array<{ id: string; name: string; x: number; y: number; skin?: string }>;
   npcs: Array<{ id: string; name: string; x: number; y: number; skin?: string }>;
   animals: Array<{ id: string; type: string; x: number; y: number }>;
+  chat?: Array<{ ts: number; message: string }>;
 };
 
 const SKY_TILE = 6;
@@ -40,6 +41,7 @@ export default function WorldPage() {
   const [showIntro, setShowIntro] = useState(true);
   const [isLocked, setIsLocked] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [chat, setChat] = useState<Array<{ ts: number; message: string }>>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -49,7 +51,10 @@ export default function WorldPage() {
       if (!mounted) return;
       try {
         const data = JSON.parse(evt.data);
-        if (data?.ok) setSnapshot(data);
+        if (data?.ok) {
+          setSnapshot(data);
+          if (Array.isArray(data.chat)) setChat(data.chat);
+        }
       } catch (e) {
         console.warn('[world] bad message', e);
       }
@@ -232,7 +237,7 @@ export default function WorldPage() {
     <div className="min-h-screen bg-black">
       {error && <div className="p-4 text-sm text-red-400">{error}</div>}
       {!snapshot && !error && <div className="p-4 text-sm text-zinc-400">Loading…</div>}
-      <div className="h-screen w-screen overflow-hidden bg-black flex items-center justify-center">
+      <div className="h-screen w-screen overflow-hidden bg-black flex items-center justify-center relative">
         <div
           ref={containerRef}
           className="bg-black"
@@ -246,6 +251,17 @@ export default function WorldPage() {
         >
           <canvas ref={canvasRef} className="block w-full h-full" />
         </div>
+
+        {!showIntro && !isMobile && (
+          <div className="absolute left-4 bottom-4 w-[320px] space-y-1 rounded-xl border border-white/10 bg-black/60 p-3 text-xs text-white">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-400">World Chat</div>
+            <div className="max-h-40 space-y-1 overflow-hidden">
+              {chat.slice(-8).map((c) => (
+                <div key={c.ts} className="truncate">{c.message}</div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {(showIntro || isMobile) && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/70">
