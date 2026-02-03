@@ -287,7 +287,8 @@ export default function WorldPage() {
     const minZoomW = viewport.w / (wsW * baseTile);
     const minZoomH = viewport.h / (wsH * baseTile);
     const minZoom = Math.max(0.1, minZoomW, minZoomH);
-    const maxZoom = viewport.w / (100 * baseTile); // keep at least 100 tiles visible
+    const minTiles = follow ? 30 : 100;
+    const maxZoom = viewport.w / (minTiles * baseTile); // keep at least minTiles visible
     const next = Math.min(maxZoom, Math.max(minZoom, +(zoomTarget + delta).toFixed(2)));
     setZoomTarget(next);
   };
@@ -355,7 +356,7 @@ export default function WorldPage() {
                       const minZoomW = viewport.w / (wsW * base);
                       const minZoomH = viewport.h / (wsH * base);
                       const minZoom = Math.max(0.1, minZoomW, minZoomH);
-                      const targetZoom = Math.min(maxZoom, Math.max(minZoom, zoomTarget));
+                      const targetZoom = Math.min(maxZoom, Math.max(minZoom, maxZoom));
                       setZoomTarget(targetZoom);
 
                       const viewW = Math.max(1, Math.min(wsW, Math.ceil(viewport.w / (base * targetZoom))));
