@@ -230,7 +230,8 @@ export default function WorldPage() {
       const minZoomW = viewport.w / (ws * baseTile);
       const minZoomH = viewport.h / (ws * baseTile);
       const minZoom = Math.max(0.1, minZoomW, minZoomH);
-      return Math.min(6, Math.max(minZoom, +(z + delta).toFixed(2)));
+      const maxZoom = viewport.w / (100 * baseTile); // keep at least 100 tiles visible
+      return Math.min(maxZoom, Math.max(minZoom, +(z + delta).toFixed(2)));
     });
   };
 
