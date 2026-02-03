@@ -225,7 +225,7 @@ export default function WorldPage() {
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    setZoom((z) => Math.min(4, Math.max(0.5, +(z + delta).toFixed(2))));
+    setZoom((z) => Math.min(6, Math.max(0.1, +(z + delta).toFixed(2))));
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
