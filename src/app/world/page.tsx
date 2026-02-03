@@ -235,7 +235,14 @@ export default function WorldPage() {
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    setZoom((z) => Math.min(6, Math.max(0.1, +(z + delta).toFixed(2))));
+    setZoom((z) => {
+      const baseTile = showIntro ? 6 : 14;
+      const ws = snapshot?.worldSize || 512;
+      const minZoomW = viewport.w / (ws * baseTile);
+      const minZoomH = viewport.h / (ws * baseTile);
+      const minZoom = Math.max(0.1, minZoomW, minZoomH);
+      return Math.min(6, Math.max(minZoom, +(z + delta).toFixed(2)));
+    });
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
