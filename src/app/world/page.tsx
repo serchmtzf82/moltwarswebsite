@@ -98,8 +98,8 @@ export default function WorldPage() {
     const baseTile = 4;
     const tileSize = baseTile * zoom;
 
-    const viewW = Math.max(1, Math.floor(viewport.w / tileSize));
-    const viewH = Math.max(1, Math.floor(viewport.h / tileSize));
+    const viewW = Math.max(1, Math.ceil(viewport.w / tileSize));
+    const viewH = Math.max(1, Math.ceil(viewport.h / tileSize));
 
     const focus = players[0] || npcs[0] || animals[0] || { x: worldSize / 2, y: worldSize / 2 };
 
@@ -111,8 +111,8 @@ export default function WorldPage() {
     let startX = Math.max(0, Math.min(worldSize - viewW, pan.x));
     let startY = Math.max(0, Math.min(worldSize - viewH, pan.y));
 
-    canvas.width = viewW * tileSize;
-    canvas.height = viewH * tileSize;
+    canvas.width = viewport.w;
+    canvas.height = viewport.h;
 
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -183,7 +183,7 @@ export default function WorldPage() {
         onMouseUp={stopDrag}
         onMouseLeave={stopDrag}
       >
-        <canvas ref={canvasRef} className="block" />
+        <canvas ref={canvasRef} className="block w-full h-full" />
       </div>
     </div>
   );
