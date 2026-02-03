@@ -345,11 +345,20 @@ export default function WorldPage() {
                     setShowIntro(false);
                     if (snapshot) {
                       const baseTile = 36;
-                      const tileSize = baseTile * zoom;
-                      const viewW = Math.max(1, Math.min(snapshot.worldWidth || snapshot.worldSize || 256, Math.ceil(viewport.w / tileSize)));
-                      const viewH = Math.max(1, Math.min(snapshot.worldHeight || snapshot.worldSize || 256, Math.ceil(viewport.h / tileSize)));
-                      const surfaceY = surfaceRef.current ?? Math.floor((snapshot.worldHeight || snapshot.worldSize || 256) / 2);
-                      const focusX = (snapshot.players?.[0]?.x ?? (snapshot.worldWidth || snapshot.worldSize || 256) / 2);
+                      const wsW = snapshot.worldWidth || snapshot.worldSize || 256;
+                      const wsH = snapshot.worldHeight || snapshot.worldSize || 256;
+                      const minZoomW = viewport.w / (wsW * baseTile);
+                      const minZoomH = viewport.h / (wsH * baseTile);
+                      const minZoom = Math.max(0.1, minZoomW, minZoomH);
+                      const maxZoom = viewport.w / (100 * baseTile);
+                      const targetZoom = Math.min(maxZoom, Math.max(minZoom, zoom));
+                      setZoom(targetZoom);
+
+                      const tileSize = baseTile * targetZoom;
+                      const viewW = Math.max(1, Math.min(wsW, Math.ceil(viewport.w / tileSize)));
+                      const viewH = Math.max(1, Math.min(wsH, Math.ceil(viewport.h / tileSize)));
+                      const surfaceY = surfaceRef.current ?? Math.floor(wsH / 2);
+                      const focusX = (snapshot.players?.[0]?.x ?? wsW / 2);
                       const next = { x: Math.floor(focusX - viewW / 2), y: Math.floor(surfaceY - viewH / 2) };
                       setPan(next);
                       panCenterRef.current = next;
