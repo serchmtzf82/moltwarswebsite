@@ -140,17 +140,7 @@ export default function WorldPage() {
     const viewW = Math.max(1, Math.min(worldSize, Math.ceil(viewport.w / tileSize)));
     const viewH = Math.max(1, Math.min(worldSize, Math.ceil(viewport.h / tileSize)));
 
-    if (pan) {
-      const clamped = {
-        x: Math.max(0, Math.min(worldSize - viewW, pan.x)),
-        y: Math.max(0, Math.min(worldSize - viewH, pan.y)),
-      };
-      if (clamped.x !== pan.x || clamped.y !== pan.y) {
-        setPan(clamped);
-        panCenterRef.current = clamped;
-        return;
-      }
-    }
+    // clamp handled at render time
 
     // compute global surface (y=0 reference) as average first non-sky tile
     let sum = 0;
@@ -174,27 +164,26 @@ export default function WorldPage() {
       animals[0] ||
       { x: worldSize / 2, y: surfaceY };
 
-    if (!pan) {
+    let panBase = pan;
+    if (!panBase) {
       const initial = { x: Math.floor(focus.x - viewW / 2), y: Math.floor(surfaceY - viewH / 2) };
       setPan(initial);
       panCenterRef.current = initial;
-      return;
+      panBase = initial;
     }
 
-    // soft follow: gently pull pan toward target
-    if (follow && focus) {
+    // soft follow: gently pull pan toward target (render-time only)
+    if (follow && focus && panBase) {
       const targetX = Math.floor(focus.x - viewW / 2);
       const targetY = Math.floor(focus.y - viewH / 2);
-      const next = {
-        x: Math.floor(pan.x + (targetX - pan.x) * 0.05),
-        y: Math.floor(pan.y + (targetY - pan.y) * 0.05),
+      panBase = {
+        x: Math.floor(panBase.x + (targetX - panBase.x) * 0.05),
+        y: Math.floor(panBase.y + (targetY - panBase.y) * 0.05),
       };
-      setPan(next);
-      panCenterRef.current = next;
     }
 
-    let startX = Math.max(0, Math.min(worldSize - viewW, pan.x));
-    let startY = Math.max(0, Math.min(worldSize - viewH, pan.y));
+    const startX = Math.max(0, Math.min(worldSize - viewW, panBase?.x ?? 0));
+    const startY = Math.max(0, Math.min(worldSize - viewH, panBase?.y ?? 0));
 
     canvas.width = viewport.w;
     canvas.height = viewport.h;
