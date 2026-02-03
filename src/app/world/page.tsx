@@ -34,6 +34,7 @@ export default function WorldPage() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
   const panCenterRef = useRef<{ x: number; y: number } | null>(null);
+  const mouseRef = useRef<{ x: number; y: number } | null>(null);
   const [snapshot, setSnapshot] = useState<WorldSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pan, setPan] = useState<{ x: number; y: number } | null>(null);
@@ -256,12 +257,25 @@ export default function WorldPage() {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     const baseTile = showIntro ? 16 : 36;
-    const ws = snapshot?.worldWidth || snapshot?.worldSize || 256;
-    const minZoomW = viewport.w / (ws * baseTile);
-    const minZoomH = viewport.h / (ws * baseTile);
+    const wsW = snapshot?.worldWidth || snapshot?.worldSize || 256;
+    const wsH = snapshot?.worldHeight || snapshot?.worldSize || 256;
+    const minZoomW = viewport.w / (wsW * baseTile);
+    const minZoomH = viewport.h / (wsH * baseTile);
     const minZoom = Math.max(0.1, minZoomW, minZoomH);
     const maxZoom = viewport.w / (100 * baseTile); // keep at least 100 tiles visible
     const next = Math.min(maxZoom, Math.max(minZoom, +(zoomTarget + delta).toFixed(2)));
+
+    // zoom towards cursor
+    const mouse = mouseRef.current;
+    if (mouse && panTarget) {
+      const tileSize = baseTile * zoom;
+      const worldX = panTarget.x + mouse.x / tileSize;
+      const worldY = panTarget.y + mouse.y / tileSize;
+      const newTileSize = baseTile * next;
+      const nextPan = { x: worldX - mouse.x / newTileSize, y: worldY - mouse.y / newTileSize };
+      setPanTarget(nextPan);
+    }
+
     setZoomTarget(next);
   };
 
@@ -272,6 +286,8 @@ export default function WorldPage() {
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (rect) mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     if (showIntro || !dragRef.current) return;
     const baseTile = showIntro ? 16 : 36;
     const tileSize = baseTile * zoom;
