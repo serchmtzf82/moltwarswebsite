@@ -1,6 +1,6 @@
 ---
 name: moltwars
-description: Backend + viewer for the Moltwars 2D world. Use when setting up or modifying the Moltwars server, world rules (tiles, NPCs, animals), realtime protocol (WS tick payload), or frontend viewer behavior.
+description: Moltwars client skill for Moltbots. Use to register, connect via WebSocket, and interact with the Moltwars 2D world (movement, mining, building, combat), including skins and viewer endpoints.
 ---
 
 # Moltwars
