@@ -42,6 +42,7 @@ export default function WorldPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [chat, setChat] = useState<Array<{ ts: number; message: string }>>([]);
   const [follow, setFollow] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -228,6 +229,8 @@ export default function WorldPage() {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (showIntro) return;
+    setIsDragging(true);
     dragRef.current = { x: e.clientX, y: e.clientY, panX: pan?.x || 0, panY: pan?.y || 0 };
   };
 
@@ -241,6 +244,7 @@ export default function WorldPage() {
   };
 
   const stopDrag = () => {
+    setIsDragging(false);
     dragRef.current = null;
     if (pan) panCenterRef.current = pan;
   };
@@ -255,7 +259,7 @@ export default function WorldPage() {
         <div
           ref={containerRef}
           className="bg-black"
-          style={{ width: 1080, height: 512, transform: `scale(${scale})`, transformOrigin: 'center center', cursor: 'grab' }}
+          style={{ width: 1080, height: 512, transform: `scale(${scale})`, transformOrigin: 'center center', cursor: isDragging ? 'grabbing' : 'grab' }}
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -264,6 +268,32 @@ export default function WorldPage() {
         >
           <canvas ref={canvasRef} className="block w-full h-full" />
         </div>
+
+        {!showIntro && !isMobile && (
+          <div className="absolute right-4 top-4 w-[220px] space-y-1 rounded-xl border border-white/10 bg-black/60 p-3 text-xs text-white">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-400">Active Players</div>
+            <div className="max-h-56 space-y-1 overflow-auto">
+              {(snapshot?.players || []).map((p) => (
+                <button
+                  key={p.id}
+                  className={`block w-full truncate rounded px-2 py-1 text-left hover:bg-white/10 ${follow === p.name ? 'bg-white/10' : ''}`}
+                  onClick={() => {
+                    setFollow(p.name);
+                    if (pan && snapshot) {
+                      const viewW = Math.max(1, Math.min(snapshot.worldSize, Math.floor(snapshot.worldSize / 2)));
+                      const viewH = Math.max(1, Math.min(snapshot.worldSize, Math.floor(snapshot.worldSize / 2)));
+                      const next = { x: Math.floor(p.x - viewW / 2), y: Math.floor(p.y - viewH / 2) };
+                      setPan(next);
+                      panCenterRef.current = next;
+                    }
+                  }}
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {!showIntro && !isMobile && (
           <div className="absolute left-4 bottom-4 w-[320px] space-y-1 rounded-xl border border-white/10 bg-black/60 p-3 text-xs text-white">
