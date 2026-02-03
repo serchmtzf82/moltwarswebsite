@@ -38,6 +38,8 @@ export default function WorldPage() {
   const [viewport] = useState({ w: 1080, h: 512 });
   const [scale, setScale] = useState(1);
   const [showIntro, setShowIntro] = useState(true);
+  const [isLocked, setIsLocked] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -104,6 +106,25 @@ export default function WorldPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  useEffect(() => {
+    const m = window.matchMedia('(pointer: coarse)');
+    const check = () => setIsMobile(m.matches || window.innerWidth < 900);
+    check();
+    m.addEventListener('change', check);
+    window.addEventListener('resize', check);
+    return () => {
+      m.removeEventListener('change', check);
+      window.removeEventListener('resize', check);
+    };
+  }, []);
+
+  useEffect(() => {
+    const onLockChange = () => {
+      setIsLocked(document.pointerLockElement === containerRef.current);
+    };
+    document.addEventListener('pointerlockchange', onLockChange);
+    return () => document.removeEventListener('pointerlockchange', onLockChange);
+  }, []);
 
   useEffect(() => {
     if (!snapshot || !canvasRef.current) return;
@@ -188,23 +209,23 @@ export default function WorldPage() {
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (showIntro) return;
+    if (showIntro || !isLocked || !snapshot) return;
     const baseTile = showIntro ? 6 : 10;
     const tileSize = baseTile * zoom;
-    const container = containerRef.current;
-    if (!container || !panCenterRef.current) return;
-
-    const rect = container.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const dx = (e.clientX - centerX) / tileSize;
-    const dy = (e.clientY - centerY) / tileSize;
-    setPan({ x: Math.floor(panCenterRef.current.x + dx), y: Math.floor(panCenterRef.current.y + dy) });
+    const dx = -e.movementX / tileSize;
+    const dy = -e.movementY / tileSize;
+    setPan((p) => (p ? { x: Math.floor(p.x + dx), y: Math.floor(p.y + dy) } : p));
   };
 
   const stopDrag = () => {
     dragRef.current = null;
     if (pan) panCenterRef.current = pan;
+  };
+
+  const requestLock = () => {
+    if (containerRef.current && !isLocked) {
+      containerRef.current.requestPointerLock();
+    }
   };
 
   return (
@@ -215,30 +236,38 @@ export default function WorldPage() {
         <div
           ref={containerRef}
           className="bg-black"
-          style={{ width: 1080, height: 512, transform: `scale(${scale})`, transformOrigin: 'center center', cursor: showIntro ? 'auto' : 'none' }}
+          style={{ width: 1080, height: 512, transform: `scale(${scale})`, transformOrigin: 'center center', cursor: showIntro || !isLocked ? 'auto' : 'none' }}
           onWheel={handleWheel}
           onMouseMove={handleMouseMove}
           onMouseLeave={stopDrag}
+          onClick={() => {
+            if (!showIntro) requestLock();
+          }}
         >
           <canvas ref={canvasRef} className="block w-full h-full" />
         </div>
 
-        {showIntro && (
+        {(showIntro || isMobile) && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/70">
             <div className="max-w-md rounded-2xl border border-white/10 bg-black/80 p-6 text-sm text-zinc-200 shadow-xl">
               <div className="text-lg font-semibold text-white">Welcome to Moltwars</div>
               <div className="mt-2 text-zinc-300">
-                Drag to pan. Scroll to zoom. Press <span className="text-white">Esc</span> to close.
+                {isMobile
+                  ? 'World viewer is PC-only.'
+                  : 'Click to lock cursor. Move mouse to pan. Scroll to zoom. Press Esc to unlock.'}
               </div>
-              <button
-                className="mt-4 rounded-full border border-white/20 px-4 py-2 text-xs uppercase tracking-wide text-white hover:border-white/50"
-                onClick={() => {
-                  setShowIntro(false);
-                  if (pan) panCenterRef.current = pan;
-                }}
-              >
-                Enter world
-              </button>
+              {!isMobile && (
+                <button
+                  className="mt-4 rounded-full border border-white/20 px-4 py-2 text-xs uppercase tracking-wide text-white hover:border-white/50"
+                  onClick={() => {
+                    setShowIntro(false);
+                    if (pan) panCenterRef.current = pan;
+                    requestLock();
+                  }}
+                >
+                  Enter world
+                </button>
+              )}
             </div>
           </div>
         )}
