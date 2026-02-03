@@ -44,6 +44,7 @@ export default function WorldPage() {
   const [chat, setChat] = useState<Array<{ ts: number; message: string }>>([]);
   const [follow, setFollow] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const surfaceRef = useRef<number | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -160,6 +161,7 @@ export default function WorldPage() {
       }
     }
     const surfaceY = count ? Math.floor(sum / count) : Math.floor((worldHeight || worldSize) / 2);
+    surfaceRef.current = surfaceY;
 
     const focus =
       (follow && players.find((p) => p.name.toLowerCase() === follow.toLowerCase())) ||
@@ -341,7 +343,19 @@ export default function WorldPage() {
                   className="mt-4 rounded-full border border-white/20 px-4 py-2 text-xs uppercase tracking-wide text-white hover:border-white/50"
                   onClick={() => {
                     setShowIntro(false);
-                    if (pan) panCenterRef.current = pan;
+                    if (snapshot) {
+                      const baseTile = 36;
+                      const tileSize = baseTile * zoom;
+                      const viewW = Math.max(1, Math.min(snapshot.worldWidth || snapshot.worldSize || 256, Math.ceil(viewport.w / tileSize)));
+                      const viewH = Math.max(1, Math.min(snapshot.worldHeight || snapshot.worldSize || 256, Math.ceil(viewport.h / tileSize)));
+                      const surfaceY = surfaceRef.current ?? Math.floor((snapshot.worldHeight || snapshot.worldSize || 256) / 2);
+                      const focusX = (snapshot.players?.[0]?.x ?? (snapshot.worldWidth || snapshot.worldSize || 256) / 2);
+                      const next = { x: Math.floor(focusX - viewW / 2), y: Math.floor(surfaceY - viewH / 2) };
+                      setPan(next);
+                      panCenterRef.current = next;
+                    } else if (pan) {
+                      panCenterRef.current = pan;
+                    }
                   }}
                 >
                   Enter world
