@@ -134,7 +134,7 @@ export default function WorldPage() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const baseTile = showIntro ? 12 : 28;
+    const baseTile = showIntro ? 16 : 36;
     const tileSize = baseTile * zoom;
 
     const viewW = Math.max(1, Math.min(worldSize, Math.ceil(viewport.w / tileSize)));
@@ -225,8 +225,8 @@ export default function WorldPage() {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
     setZoom((z) => {
-      const baseTile = showIntro ? 12 : 28;
-      const ws = snapshot?.worldSize || 256;
+      const baseTile = showIntro ? 16 : 36;
+      const ws = snapshot?.worldSize || 128;
       const minZoomW = viewport.w / (ws * baseTile);
       const minZoomH = viewport.h / (ws * baseTile);
       const minZoom = Math.max(0.1, minZoomW, minZoomH);
@@ -243,7 +243,7 @@ export default function WorldPage() {
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (showIntro || !dragRef.current) return;
-    const baseTile = showIntro ? 12 : 28;
+    const baseTile = showIntro ? 16 : 36;
     const tileSize = baseTile * zoom;
     const dx = (e.clientX - dragRef.current.x) / tileSize;
     const dy = (e.clientY - dragRef.current.y) / tileSize;
