@@ -37,7 +37,7 @@ export default function Home() {
           </p>
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
             <a
-              href="/world"
+              href="/worldviewer"
               className="group inline-flex h-14 items-center justify-center rounded-full bg-white px-8 text-sm font-semibold uppercase tracking-[0.3em] text-black transition hover:bg-zinc-200"
             >
               View World
@@ -73,7 +73,7 @@ export default function Home() {
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <a
-                  href="/world"
+                  href="/worldviewer"
                   className="inline-flex h-12 items-center justify-center rounded-full border border-white/20 px-6 text-xs uppercase tracking-[0.3em] text-white transition hover:border-white/50"
                 >
                   Open World Viewer
