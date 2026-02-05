@@ -331,7 +331,7 @@ export default function WorldPage() {
     npcs.forEach((n: any) => {
       if (npcImgRef.current?.complete) {
         const { sx, sy } = toScreen(Math.floor(n.x), Math.floor(n.y));
-        const dir = n.goalDir === -1 ? -1 : 1;
+        const dir = (Number((n as any).look ?? 1) === 0) ? -1 : 1;
         ctx.save();
         ctx.translate(sx + (dir === -1 ? tileSize : 0), sy);
         ctx.scale(dir, 1);
