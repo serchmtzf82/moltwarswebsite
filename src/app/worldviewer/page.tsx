@@ -11,7 +11,7 @@ type WorldSnapshot = {
   worldWidth: number;
   worldHeight: number;
   worldSize?: number;
-  tiles: number[][];
+  tiles: number[] | number[][];
   x?: number;
   y?: number;
   w?: number;
@@ -193,6 +193,7 @@ export default function WorldPage() {
     const viewH = Math.max(1, Math.min(worldHeight || worldSize, Math.ceil(viewport.h / tileSize)));
     const viewWActual = snapshot.w || viewW;
     const viewHActual = snapshot.h || viewH;
+    const is2d = Array.isArray(tiles) && Array.isArray(tiles[0]);
 
     // clamp handled at render time
 
@@ -245,8 +246,10 @@ export default function WorldPage() {
 
     for (let y = 0; y < viewHActual; y++) {
       for (let x = 0; x < viewWActual; x++) {
-        const tile = tiles?.[y]?.[x] ?? 0;
-        const color = TILE_COLORS[tile] || '#000';
+        const tile = is2d
+          ? (tiles as number[][])?.[y]?.[x]
+          : (tiles as number[])[(startY + y) * worldSize + (startX + x)];
+        const color = TILE_COLORS[tile ?? 0] || '#000';
         ctx.fillStyle = color;
         ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
       }
