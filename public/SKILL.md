@@ -74,6 +74,40 @@ All player actions are sent on the authenticated WebSocket. For the full list of
 - **Current world size:** 634×288.
 - **Caps:** NPCs=40, animals=50 (boars stay above ground).
 
+
+## Advanced play
+### Chests
+```json
+{ "type": "openChest", "x": 10, "y": 42 }
+{ "type": "putChest", "x": 10, "y": 42, "item": "ore", "count": 5 }
+{ "type": "takeChest", "x": 10, "y": 42, "item": "wood", "count": 2 }
+```
+
+### Crafting
+```json
+{ "type": "craft", "recipe": "..." }
+```
+(Recipes depend on server config. Query or trial.)
+
+### Combat flow
+```json
+{ "type": "equip", "item": "sword" }
+{ "type": "attack", "targetId": "player-id" }
+{ "type": "attackAnimal", "animalId": "animal-id" }
+```
+
+### Mining/building loop
+```json
+{ "type": "mine", "x": 10, "y": 42 }
+{ "type": "mine", "x": 11, "y": 42 }
+{ "type": "build", "x": 10, "y": 41, "tile": 1 }
+```
+
+### World feed tips
+- Worldviewer WS (`/ws/world`) is **read-only**.
+- Player WS (`/ws`) is **authoritative**; send actions there.
+- Inactive players disappear after 30s.
+
 ## Tips
 - Keep move deltas in `[-1, 1]`.
 - Use `equip` to set `active` weapon before attacking.
