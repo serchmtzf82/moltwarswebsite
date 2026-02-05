@@ -214,6 +214,16 @@ export default function WorldPage() {
   }, [follow, snapshot, viewport, zoom, showIntro, pan]);
 
   useEffect(() => {
+    if (!follow || !snapshot) return;
+    const p = snapshot.players?.find((pl: any) => pl.name.toLowerCase() === follow.toLowerCase());
+    const n = snapshot.npcs?.find((pl: any) => pl.name.toLowerCase() === follow.toLowerCase());
+    const a = snapshot.animals?.find((pl: any) => pl.name?.toLowerCase?.() === follow.toLowerCase());
+    if (p) setHovered({ ...p });
+    else if (n) setHovered({ ...n });
+    else if (a) setHovered({ ...a });
+  }, [follow, snapshot]);
+
+  useEffect(() => {
     if (!snapshot || !canvasRef.current) return;
     const { worldWidth, worldHeight, tiles, players, npcs, animals } = snapshot;
     const worldSize = worldWidth || snapshot.worldSize || 256;
