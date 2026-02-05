@@ -138,6 +138,7 @@ export default function WorldPage() {
       setPan((p) => {
         if (!panTarget) return p;
         if (!p) return panTarget;
+        if (isDragging) return panTarget; // snap while dragging
         const nx = p.x + (panTarget.x - p.x) * 0.35;
         const ny = p.y + (panTarget.y - p.y) * 0.35;
         if (Math.abs(nx - panTarget.x) < 0.01 && Math.abs(ny - panTarget.y) < 0.01) return panTarget;
@@ -163,7 +164,7 @@ export default function WorldPage() {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [panTarget, zoomTarget, showIntro]);
+  }, [panTarget, zoomTarget, showIntro, isDragging]);
 
   useEffect(() => {
     const m = window.matchMedia('(pointer: coarse)');
@@ -342,6 +343,7 @@ export default function WorldPage() {
     const dy = (e.clientY - dragRef.current.y) / tileSize;
     const next = { x: dragRef.current.panX - dx, y: dragRef.current.panY - dy };
     setPanTarget(next);
+    setPan(next);
   };
 
   const stopDrag = () => {
