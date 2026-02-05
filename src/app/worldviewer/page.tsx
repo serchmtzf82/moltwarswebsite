@@ -38,13 +38,11 @@ export default function WorldPage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
-  const panCenterRef = useRef<{ x: number; y: number } | null>(null);
   const mouseRef = useRef<{ x: number; y: number } | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const [snapshot, setSnapshot] = useState<WorldSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pan, setPan] = useState<{ x: number; y: number } | null>(null);
-  const [panTarget, setPanTarget] = useState<{ x: number; y: number } | null>(null);
   const [zoom, setZoom] = useState(1);
   const [zoomTarget, setZoomTarget] = useState(1);
   const [viewport, setViewport] = useState({ w: 1920, h: 1080 });
@@ -129,30 +127,17 @@ export default function WorldPage() {
   useEffect(() => {
     let raf: number;
     const tick = () => {
-      const baseTile = showIntro ? 16 : 36;
-      const mouse = mouseRef.current;
-
       setZoom((z) => {
         if (zoomTarget === null) return z;
         const nz = z + (zoomTarget - z) * 0.35;
-        if (mouse && panTarget) {
-          const tileSize = baseTile * z;
-          const worldX = panTarget.x + mouse.x / tileSize;
-          const worldY = panTarget.y + mouse.y / tileSize;
-          const newTileSize = baseTile * nz;
-          const nextPan = { x: worldX - mouse.x / newTileSize, y: worldY - mouse.y / newTileSize };
-          setPanTarget(nextPan);
-          setPan(nextPan);
-        }
         if (Math.abs(nz - zoomTarget) < 0.002) return zoomTarget;
         return nz;
       });
-
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [panTarget, zoomTarget, showIntro]);
+  }, [zoomTarget]);
 
   useEffect(() => {
     const m = window.matchMedia('(pointer: coarse)');
@@ -215,15 +200,13 @@ export default function WorldPage() {
     if (!panBase) {
       const initial = { x: Math.floor(focus.x - viewW / 2), y: Math.floor(surfaceY - viewH / 2) };
       setPan(initial);
-      setPanTarget(initial);
-      panCenterRef.current = initial;
       panBase = initial;
     }
 
     // soft follow: set target pan (smooth)
     if (follow && focus) {
       const target = { x: Math.floor(focus.x - viewW / 2), y: Math.floor(focus.y - viewH / 2) };
-      setPanTarget(target);
+      setPan(target);
     }
 
     const startX = Math.floor(Math.max(0, Math.min(worldSize - viewWActual, snapshot.x ?? panBase?.x ?? 0)));
@@ -328,6 +311,15 @@ export default function WorldPage() {
     const minTiles = follow ? 40 : 100;
     const maxZoom = viewport.w / (minTiles * baseTile); // keep at least minTiles visible
     const next = Math.min(maxZoom, Math.max(minZoom, +(zoomTarget + delta).toFixed(2)));
+    // zoom towards cursor
+    const mouse = mouseRef.current;
+    if (mouse && pan) {
+      const tileSize = baseTile * zoom;
+      const worldX = pan.x + mouse.x / tileSize;
+      const worldY = pan.y + mouse.y / tileSize;
+      const newTileSize = baseTile * next;
+      setPan({ x: worldX - mouse.x / newTileSize, y: worldY - mouse.y / newTileSize });
+    }
     setZoomTarget(next);
   };
 
@@ -346,19 +338,12 @@ export default function WorldPage() {
     const dx = (e.clientX - dragRef.current.x) / tileSize;
     const dy = (e.clientY - dragRef.current.y) / tileSize;
     const next = { x: dragRef.current.panX - dx, y: dragRef.current.panY - dy };
-    setPanTarget(next);
     setPan(next);
   };
 
   const stopDrag = () => {
     setIsDragging(false);
     dragRef.current = null;
-    if (panTarget) {
-      setPan(panTarget);
-      panCenterRef.current = panTarget;
-    } else if (pan) {
-      panCenterRef.current = pan;
-    }
   };
 
   // no pointer lock
@@ -405,8 +390,7 @@ export default function WorldPage() {
                       const viewW = Math.max(1, Math.min(wsW, Math.ceil(viewport.w / (base * targetZoom))));
                       const viewH = Math.max(1, Math.min(wsH, Math.ceil(viewport.h / (base * targetZoom))));
                       const next = { x: Math.floor(p.x - viewW / 2), y: Math.floor(p.y - viewH / 2) };
-                      setPanTarget(next);
-                      panCenterRef.current = next;
+                      setPan(next);
                     }
                   }}
                 >
@@ -482,8 +466,7 @@ export default function WorldPage() {
                       const surfaceY = surfaceRef.current ?? Math.floor(wsH / 2);
                       const focusX = (snapshot.players?.[0]?.x ?? wsW / 2);
                       const next = { x: Math.floor(focusX - viewW / 2), y: Math.floor(surfaceY - viewH / 2) };
-                      setPanTarget(next);
-                      panCenterRef.current = next;
+                      setPan(next);
                     } else if (pan) {
                       panCenterRef.current = pan;
                     }
