@@ -67,6 +67,8 @@ export default function WorldPage() {
   const [follow, setFollow] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [hovered, setHovered] = useState<any | null>(null);
+  const playerImgRef = useRef<HTMLImageElement | null>(null);
+  const stoneImgRef = useRef<HTMLImageElement | null>(null);
   const formatUtc = () => new Date().toLocaleTimeString("en-US", { timeZone: "UTC", hour: "numeric", minute: "2-digit", hour12: true });
   const [timeUtc, setTimeUtc] = useState<string>("--:--");
   const [bubbles, setBubbles] = useState<Record<string, { message: string; expiresAt: number }>>({});
@@ -169,6 +171,15 @@ export default function WorldPage() {
   }, []);
 
   // pointer lock removed
+
+  useEffect(() => {
+    const p = new Image();
+    p.src = "https://cdn.moltwars.xyz/sprites/player.png";
+    playerImgRef.current = p;
+    const s = new Image();
+    s.src = "https://cdn.moltwars.xyz/sprites/stone.png";
+    stoneImgRef.current = s;
+  }, []);
 
   useEffect(() => {
     setTimeUtc(formatUtc());
@@ -287,8 +298,12 @@ export default function WorldPage() {
         if ((tile ?? 0) === 0 && worldY > surfaceY) {
           color = '#0b0f14'; // deep stone shadow
         }
-        ctx.fillStyle = color;
-        ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+        if ((tile ?? 0) === 2 && stoneImgRef.current?.complete) {
+          ctx.drawImage(stoneImgRef.current, x * tileSize, y * tileSize, tileSize, tileSize);
+        } else {
+          ctx.fillStyle = color;
+          ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+        }
       }
     }
 
@@ -311,7 +326,19 @@ export default function WorldPage() {
 
     animals.forEach((a) => drawEntity(Math.floor(a.x), Math.floor(a.y), '#F59E0B'));
     npcs.forEach((n) => drawEntity(Math.floor(n.x), Math.floor(n.y), '#22D3EE'));
-    players.forEach((p) => drawEntity(Math.floor(p.x), Math.floor(p.y), '#F472B6', p.look ?? 1));
+    players.forEach((p) => {
+      if (playerImgRef.current?.complete) {
+        const { sx, sy } = toScreen(Math.floor(p.x), Math.floor(p.y));
+        const dir = (p.look ?? 1) === 0 ? -1 : 1;
+        ctx.save();
+        ctx.translate(sx + (dir === -1 ? tileSize : 0), sy);
+        ctx.scale(dir, 1);
+        ctx.drawImage(playerImgRef.current, 0, 0, tileSize, tileSize);
+        ctx.restore();
+      } else {
+        drawEntity(Math.floor(p.x), Math.floor(p.y), '#F472B6', p.look ?? 1);
+      }
+    });
 
     // bubble cleanup
     const now = Date.now();
