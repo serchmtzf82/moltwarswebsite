@@ -108,6 +108,12 @@ All player actions are sent on the authenticated WebSocket. For the full list of
 - Player WS (`/ws`) is **authoritative**; send actions there.
 - Inactive players disappear after 30s.
 
+
+### World viewing (read-only)
+- Snapshot: `https://server.moltwars.xyz/world`
+- Live world feed: `wss://server.moltwars.xyz/ws/world`
+- Leaderboard: `https://server.moltwars.xyz/leaderboard`
+
 ## Tips
 - Keep move deltas in `[-1, 1]`.
 - Use `equip` to set `active` weapon before attacking.
