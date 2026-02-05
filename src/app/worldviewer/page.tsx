@@ -11,7 +11,11 @@ type WorldSnapshot = {
   worldWidth: number;
   worldHeight: number;
   worldSize?: number;
-  tiles: number[];
+  tiles: number[][];
+  x?: number;
+  y?: number;
+  w?: number;
+  h?: number;
   players: Array<{ id: string; name: string; x: number; y: number; skin?: string }>;
   npcs: Array<{ id: string; name: string; x: number; y: number; skin?: string }>;
   animals: Array<{ id: string; type: string; x: number; y: number }>;
@@ -36,6 +40,7 @@ export default function WorldPage() {
   const dragRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
   const panCenterRef = useRef<{ x: number; y: number } | null>(null);
   const mouseRef = useRef<{ x: number; y: number } | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
   const [snapshot, setSnapshot] = useState<WorldSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pan, setPan] = useState<{ x: number; y: number } | null>(null);
@@ -59,6 +64,7 @@ export default function WorldPage() {
     if (followParam) setFollow(followParam);
     console.log('[world] connecting', WORLD_WS);
     const ws = new WebSocket(WORLD_WS);
+    wsRef.current = ws;
     ws.onmessage = (evt) => {
       if (!mounted) return;
       try {
@@ -195,6 +201,8 @@ export default function WorldPage() {
 
     const viewW = Math.max(1, Math.min(worldSize, Math.ceil(viewport.w / tileSize)));
     const viewH = Math.max(1, Math.min(worldHeight || worldSize, Math.ceil(viewport.h / tileSize)));
+    const viewWActual = snapshot.w || viewW;
+    const viewHActual = snapshot.h || viewH;
 
     // clamp handled at render time
 
@@ -236,20 +244,18 @@ export default function WorldPage() {
       setPanTarget(target);
     }
 
-    const startX = Math.floor(Math.max(0, Math.min(worldSize - viewW, panBase?.x ?? 0)));
-    const startY = Math.floor(Math.max(0, Math.min((worldHeight || worldSize) - viewH, panBase?.y ?? 0)));
+    const startX = Math.floor(Math.max(0, Math.min(worldSize - viewWActual, snapshot.x ?? panBase?.x ?? 0)));
+    const startY = Math.floor(Math.max(0, Math.min((worldHeight || worldSize) - viewHActual, snapshot.y ?? panBase?.y ?? 0)));
 
-    canvas.width = viewW * tileSize;
-    canvas.height = viewH * tileSize;
+    canvas.width = viewWActual * tileSize;
+    canvas.height = viewHActual * tileSize;
 
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    for (let y = 0; y < viewH; y++) {
-      const wy = startY + y;
-      for (let x = 0; x < viewW; x++) {
-        const wx = startX + x;
-        const tile = tiles[wy * worldSize + wx] || 0;
+    for (let y = 0; y < viewHActual; y++) {
+      for (let x = 0; x < viewWActual; x++) {
+        const tile = tiles?.[y]?.[x] ?? 0;
         const color = TILE_COLORS[tile] || '#000';
         ctx.fillStyle = color;
         ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
@@ -312,6 +318,20 @@ export default function WorldPage() {
       setHovered(found ? { ...found } : null);
     }
   }, [snapshot, pan, zoom, viewport, bubbles]);
+
+  useEffect(() => {
+    if (!wsRef.current || wsRef.current.readyState !== 1) return;
+    if (!panTarget || !snapshot) return;
+    const baseTile = showIntro ? 16 : 36;
+    const tileSize = Math.max(1, Math.round(baseTile * zoomTarget));
+    const wsW = snapshot.worldWidth || snapshot.worldSize || 256;
+    const wsH = snapshot.worldHeight || snapshot.worldSize || 256;
+    const viewW = Math.max(1, Math.min(wsW, Math.ceil(viewport.w / tileSize)));
+    const viewH = Math.max(1, Math.min(wsH, Math.ceil(viewport.h / tileSize)));
+    const x = Math.max(0, Math.min(wsW - viewW, Math.floor(panTarget.x)));
+    const y = Math.max(0, Math.min(wsH - viewH, Math.floor(panTarget.y)));
+    wsRef.current.send(JSON.stringify({ type: 'view', x, y, w: viewW, h: viewH }));
+  }, [panTarget, zoomTarget, viewport, snapshot, showIntro]);
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
