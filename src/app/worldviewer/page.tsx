@@ -73,6 +73,7 @@ export default function WorldPage() {
   const formatUtc = () => new Date().toLocaleTimeString("en-US", { timeZone: "UTC", hour: "numeric", minute: "2-digit", hour12: true });
   const [timeUtc, setTimeUtc] = useState<string>("--:--");
   const [bubbles, setBubbles] = useState<Record<string, { message: string; expiresAt: number }>>({});
+  const [effects, setEffects] = useState<Array<any>>([]);
   const surfaceRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -356,6 +357,40 @@ export default function WorldPage() {
       }
     });
 
+
+    // draw effects
+    const nowFx = Date.now();
+    const activeFx = effects.filter((e) => e.expiresAt > nowFx);
+    if (activeFx.length !== effects.length) setEffects(activeFx);
+    for (const e of activeFx) {
+      if (e.kind === 'mine') {
+        const { sx, sy } = toScreen(e.x, e.y);
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(sx + 2, sy + 2, tileSize - 4, tileSize - 4);
+      } else if (e.kind === 'build') {
+        const { sx, sy } = toScreen(e.x, e.y);
+        ctx.strokeStyle = '#4ade80';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(sx + 1, sy + 1, tileSize - 2, tileSize - 2);
+      } else if (e.kind === 'attack') {
+        const a = toScreen(e.x1, e.y1);
+        const b = toScreen(e.x2, e.y2);
+        ctx.strokeStyle = '#f87171';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(a.sx + tileSize/2, a.sy + tileSize/2);
+        ctx.lineTo(b.sx + tileSize/2, b.sy + tileSize/2);
+        ctx.stroke();
+      } else if (e.kind === 'eat') {
+        const { sx, sy } = toScreen(e.x, e.y);
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(sx + tileSize/2, sy + tileSize/2, tileSize/2, 0, Math.PI*2);
+        ctx.stroke();
+      }
+    }
     // bubble cleanup
     const now = Date.now();
     const cleaned: Record<string, { message: string; expiresAt: number }> = {};
