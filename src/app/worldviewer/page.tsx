@@ -98,17 +98,7 @@ export default function WorldPage() {
       if (!mounted) return;
       console.warn('[world] ws close', e.code, e.reason);
     };
-    // Fallback to one-time fetch in case WS is blocked
-    fetch(WORLD_URL)
-      .then((r) => r.json())
-      .then((data) => {
-        if (!mounted) return;
-        setSnapshot(data);
-      })
-      .catch((e) => {
-        if (!mounted) return;
-        console.warn('[world] fetch failed', e);
-      });
+    // no REST fallback in push-only mode
     return () => {
       mounted = false;
       ws.close();
@@ -334,7 +324,6 @@ export default function WorldPage() {
   }, [panTarget, zoomTarget, viewport, snapshot, showIntro]);
 
   const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
     const delta = e.deltaY > 0 ? -0.03 : 0.03;
     const baseTile = showIntro ? 16 : 36;
     const wsW = snapshot?.worldWidth || snapshot?.worldSize || 256;
