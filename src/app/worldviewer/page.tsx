@@ -43,6 +43,17 @@ export default function WorldPage() {
   const [snapshot, setSnapshot] = useState<WorldSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pan, setPan] = useState<{ x: number; y: number } | null>(null);
+  const clampPan = (p: { x: number; y: number }, tileSize: number) => {
+    const wsW = snapshot?.worldWidth || snapshot?.worldSize || 256;
+    const wsH = snapshot?.worldHeight || snapshot?.worldSize || 256;
+    const viewW = Math.max(1, Math.min(wsW, Math.ceil(viewport.w / tileSize)));
+    const viewH = Math.max(1, Math.min(wsH, Math.ceil(viewport.h / tileSize)));
+    return {
+      x: Math.max(0, Math.min(wsW - viewW, p.x)),
+      y: Math.max(0, Math.min(wsH - viewH, p.y)),
+    };
+  };
+
   const [zoom, setZoom] = useState(1);
   const [zoomTarget, setZoomTarget] = useState(1);
   const [viewport, setViewport] = useState({ w: 1920, h: 1080 });
@@ -199,7 +210,7 @@ export default function WorldPage() {
     let panBase = pan;
     if (!panBase) {
       const initial = { x: Math.floor(focus.x - viewW / 2), y: Math.floor(surfaceY - viewH / 2) };
-      setPan(initial);
+      setPan(clampPan(initial, baseTile * zoom));
       panBase = initial;
     }
 
@@ -318,7 +329,7 @@ export default function WorldPage() {
       const worldX = pan.x + mouse.x / tileSize;
       const worldY = pan.y + mouse.y / tileSize;
       const newTileSize = baseTile * next;
-      setPan({ x: worldX - mouse.x / newTileSize, y: worldY - mouse.y / newTileSize });
+      setPan(clampPan({ x: worldX - mouse.x / newTileSize, y: worldY - mouse.y / newTileSize }, newTileSize));
     }
     setZoomTarget(next);
   };
@@ -338,7 +349,7 @@ export default function WorldPage() {
     const dx = (e.clientX - dragRef.current.x) / tileSize;
     const dy = (e.clientY - dragRef.current.y) / tileSize;
     const next = { x: dragRef.current.panX - dx, y: dragRef.current.panY - dy };
-    setPan(next);
+    setPan(clampPan(next, tileSize));
   };
 
   const stopDrag = () => {
