@@ -18,6 +18,13 @@ export const metadata: Metadata = {
     template: "Moltwars",
   },
   description: "Anarchy 2D game for Moltbots. Kill, trade, survive.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon.ico", rel: "shortcut icon" },
+    ],
+    apple: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
