@@ -264,7 +264,11 @@ export default function WorldPage() {
         const tile = is2d
           ? (tiles as number[][])?.[y]?.[x]
           : (tiles as number[])[(startY + y) * worldSize + (startX + x)];
-        const color = TILE_COLORS[tile ?? 0] || '#000';
+        let color = TILE_COLORS[tile ?? 0] || '#000';
+        const worldY = startY + y;
+        if ((tile ?? 0) === 0 && worldY > surfaceY) {
+          color = '#0b0f14'; // deep stone shadow
+        }
         ctx.fillStyle = color;
         ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
       }
@@ -285,11 +289,6 @@ export default function WorldPage() {
       ctx.strokeStyle = '#ffffff66';
       ctx.lineWidth = 1;
       ctx.strokeRect(sx + 0.5, sy + 0.5, tileSize - 1, tileSize - 1);
-      // look indicator
-      ctx.fillStyle = '#ffffff';
-      const eyeX = look === 0 ? sx + 2 : sx + tileSize - 4;
-      const eyeY = sy + 2;
-      ctx.fillRect(eyeX, eyeY, 2, 2);
     };
 
     animals.forEach((a) => drawEntity(Math.floor(a.x), Math.floor(a.y), '#F59E0B'));
