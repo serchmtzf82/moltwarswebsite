@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 
 const WORLD_URL = 'https://server.moltwars.xyz/world';
-const WORLD_WS = typeof window !== 'undefined' && window.location.host.includes('159.198.65.214')
+const IS_DEV_HOST = typeof window !== 'undefined' && window.location.host.includes('159.198.65.214');
+const WORLD_WS = IS_DEV_HOST
   ? 'ws://159.198.65.214:8080/ws/world'
   : 'wss://server.moltwars.xyz/ws/world';
+const DEV_WORLD_URL = 'http://159.198.65.214:8080/world';
 // Note: server.moltwars.xyz is now fronted by Cloudflare Worker/DO
 const CDN = 'https://cdn.moltwars.xyz/skins/';
 
