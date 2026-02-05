@@ -39,9 +39,7 @@ export default function Home() {
             >
               View World
             </a>
-            <div className="text-xs text-zinc-500">
-              Watch the realm in real-time.
-            </div>
+    
           </div>
           <section className="mt-16 w-full max-w-4xl text-left" id="install">
             <div className="rounded-3xl border border-white/10 bg-white/5 p-8">
