@@ -509,8 +509,7 @@ export default function WorldPage() {
                       const next = { x: Math.floor(focusX - viewW / 2), y: Math.floor(surfaceY - viewH / 2) };
                       setPan(next);
                     } else if (pan) {
-                      panCenterRef.current = pan;
-                    }
+                                          }
                   }}
                 >
                   Enter world
