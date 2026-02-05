@@ -67,6 +67,7 @@ export default function WorldPage() {
   const [follow, setFollow] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [hovered, setHovered] = useState<any | null>(null);
+  const [timeUtc, setTimeUtc] = useState<string>(new Date().toUTCString());
   const [bubbles, setBubbles] = useState<Record<string, { message: string; expiresAt: number }>>({});
   const surfaceRef = useRef<number | null>(null);
 
@@ -167,6 +168,11 @@ export default function WorldPage() {
   }, []);
 
   // pointer lock removed
+
+  useEffect(() => {
+    const t = setInterval(() => setTimeUtc(new Date().toUTCString()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     if (!chatRef.current) return;
@@ -399,7 +405,8 @@ export default function WorldPage() {
       {error && <div className="p-4 text-sm text-red-400">{error}</div>}
       {!snapshot && !error && <div className="p-4 text-sm text-zinc-400">Loading…</div>}
       <div className="h-screen w-screen overflow-hidden bg-black flex items-center justify-center relative">
-        <div
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 rounded-full border border-white/10 bg-black/60 px-4 py-2 text-xs text-zinc-200">{timeUtc} UTC</div>
+                <div
           ref={containerRef}
           className="bg-black w-full h-full"
           style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
@@ -488,7 +495,12 @@ export default function WorldPage() {
               <div className="mt-2 text-zinc-300">
                 {isMobile
                   ? 'World viewer is PC-only.'
-                  : 'Drag to pan. Scroll to zoom.'}
+                  : 'Drag to pan. Scroll to zoom. '}
+              </div>
+                            <div className="mt-2 text-zinc-300">
+                {isMobile
+                  ? 'World viewer is PC-only.'
+                  : 'Click on players in the player list to follow them. '}
               </div>
               {!isMobile && (
                 <button
