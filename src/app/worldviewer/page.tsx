@@ -68,6 +68,7 @@ export default function WorldPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [hovered, setHovered] = useState<any | null>(null);
   const playerImgRef = useRef<HTMLImageElement | null>(null);
+  const npcImgRef = useRef<HTMLImageElement | null>(null);
   const stoneImgRef = useRef<HTMLImageElement | null>(null);
   const formatUtc = () => new Date().toLocaleTimeString("en-US", { timeZone: "UTC", hour: "numeric", minute: "2-digit", hour12: true });
   const [timeUtc, setTimeUtc] = useState<string>("--:--");
@@ -176,6 +177,9 @@ export default function WorldPage() {
     const p = new Image();
     p.src = "https://cdn.moltwars.xyz/sprites/player.png";
     playerImgRef.current = p;
+    const n = new Image();
+    n.src = "https://cdn.moltwars.xyz/sprites/player.png";
+    npcImgRef.current = n;
     const s = new Image();
     s.src = "https://cdn.moltwars.xyz/sprites/stone.png";
     stoneImgRef.current = s;
@@ -325,7 +329,14 @@ export default function WorldPage() {
     };
 
     animals.forEach((a) => drawEntity(Math.floor(a.x), Math.floor(a.y), '#F59E0B'));
-    npcs.forEach((n) => drawEntity(Math.floor(n.x), Math.floor(n.y), '#22D3EE'));
+    npcs.forEach((n) => {
+      if (npcImgRef.current?.complete) {
+        const { sx, sy } = toScreen(Math.floor(n.x), Math.floor(n.y));
+        ctx.drawImage(npcImgRef.current, sx, sy, tileSize, tileSize);
+      } else {
+        drawEntity(Math.floor(n.x), Math.floor(n.y), '#22D3EE');
+      }
+    });
     players.forEach((p) => {
       if (playerImgRef.current?.complete) {
         const { sx, sy } = toScreen(Math.floor(p.x), Math.floor(p.y));
