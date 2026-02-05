@@ -405,7 +405,7 @@ export default function WorldPage() {
                     }
                   }}
                 >
-                  {p.kind === 'npc' ? `[NPC] ${p.name}` : p.name}
+                  {p.name}
                 </button>
               ))}
             </div>
