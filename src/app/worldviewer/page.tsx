@@ -43,6 +43,9 @@ export default function WorldPage() {
   const [snapshot, setSnapshot] = useState<WorldSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pan, setPan] = useState<{ x: number; y: number } | null>(null);
+  const samePan = (a: { x: number; y: number } | null, b: { x: number; y: number } | null) =>
+    !!a && !!b && Math.abs(a.x - b.x) < 0.01 && Math.abs(a.y - b.y) < 0.01;
+
   const clampPan = (p: { x: number; y: number }, tileSize: number) => {
     const wsW = snapshot?.worldWidth || snapshot?.worldSize || 256;
     const wsH = snapshot?.worldHeight || snapshot?.worldSize || 256;
@@ -164,6 +167,39 @@ export default function WorldPage() {
 
   // pointer lock removed
 
+  // init pan once snapshot is ready
+  useEffect(() => {
+    if (!snapshot || pan) return;
+    const baseTile = showIntro ? 16 : 36;
+    const worldSize = snapshot.worldWidth || snapshot.worldSize || 256;
+    const worldHeight = snapshot.worldHeight || snapshot.worldSize || 256;
+    const tileSize = Math.max(1, Math.round(baseTile * zoom));
+    const viewW = Math.max(1, Math.min(worldSize, Math.ceil(viewport.w / tileSize)));
+    const viewH = Math.max(1, Math.min(worldHeight, Math.ceil(viewport.h / tileSize)));
+    const initial = { x: Math.floor(worldSize / 2 - viewW / 2), y: Math.floor(worldHeight * 0.22 - viewH / 2) };
+    setPan(clampPan(initial, tileSize));
+  }, [snapshot, pan, zoom, viewport, showIntro]);
+
+  // follow target
+  useEffect(() => {
+    if (!follow || !snapshot) return;
+    const baseTile = showIntro ? 16 : 36;
+    const tileSize = Math.max(1, Math.round(baseTile * zoom));
+    const worldSize = snapshot.worldWidth || snapshot.worldSize || 256;
+    const worldHeight = snapshot.worldHeight || snapshot.worldSize || 256;
+    const viewW = Math.max(1, Math.min(worldSize, Math.ceil(viewport.w / tileSize)));
+    const viewH = Math.max(1, Math.min(worldHeight, Math.ceil(viewport.h / tileSize)));
+    const focus =
+      snapshot.players?.find((p: any) => p.name.toLowerCase() === follow.toLowerCase()) ||
+      snapshot.players?.[0] ||
+      snapshot.npcs?.[0] ||
+      snapshot.animals?.[0];
+    if (!focus) return;
+    const target = { x: Math.floor(focus.x - viewW / 2), y: Math.floor(focus.y - viewH / 2) };
+    const clamped = clampPan(target, tileSize);
+    if (!samePan(pan, clamped)) setPan(clamped);
+  }, [follow, snapshot, viewport, zoom, showIntro, pan]);
+
   useEffect(() => {
     if (!snapshot || !canvasRef.current) return;
     const { worldWidth, worldHeight, tiles, players, npcs, animals } = snapshot;
@@ -207,18 +243,7 @@ export default function WorldPage() {
       animals[0] ||
       { x: worldSize / 2, y: surfaceY };
 
-    let panBase = pan;
-    if (!panBase) {
-      const initial = { x: Math.floor(focus.x - viewW / 2), y: Math.floor(surfaceY - viewH / 2) };
-      setPan(clampPan(initial, baseTile * zoom));
-      panBase = initial;
-    }
-
-    // soft follow: set target pan (smooth)
-    if (follow && focus) {
-      const target = { x: Math.floor(focus.x - viewW / 2), y: Math.floor(focus.y - viewH / 2) };
-      setPan(target);
-    }
+    let panBase = pan || { x: 0, y: 0 };
 
     const startX = Math.floor(Math.max(0, Math.min(worldSize - viewWActual, snapshot.x ?? panBase?.x ?? 0)));
     const startY = Math.floor(Math.max(0, Math.min((worldHeight || worldSize) - viewHActual, snapshot.y ?? panBase?.y ?? 0)));
