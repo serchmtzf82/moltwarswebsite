@@ -322,10 +322,10 @@ export default function WorldPage() {
       const { sx, sy } = toScreen(x, y);
       if (sx < 0 || sy < 0 || sx >= canvas.width || sy >= canvas.height) return;
       ctx.fillStyle = color;
-      ctx.fillRect(sx, sy, tileSize * 2, tileSize * 2);
+      ctx.fillRect(sx, sy, tileSize, tileSize);
       ctx.strokeStyle = '#ffffff66';
       ctx.lineWidth = 1;
-      ctx.strokeRect(sx + 0.5, sy + 0.5, tileSize * 2 - 1, tileSize * 2 - 1);
+      ctx.strokeRect(sx + 0.5, sy + 0.5, tileSize - 1, tileSize - 1);
     };
 
     animals.forEach((a) => {
@@ -339,7 +339,7 @@ export default function WorldPage() {
     npcs.forEach((n) => {
       if (npcImgRef.current?.complete) {
         const { sx, sy } = toScreen(Math.floor(n.x), Math.floor(n.y));
-        ctx.drawImage(npcImgRef.current, sx, sy, tileSize * 2, tileSize * 2);
+        ctx.drawImage(npcImgRef.current, sx, sy, tileSize, tileSize);
       } else {
         drawEntity(Math.floor(n.x), Math.floor(n.y), '#22D3EE');
       }
@@ -351,7 +351,7 @@ export default function WorldPage() {
         ctx.save();
         ctx.translate(sx + (dir === -1 ? tileSize : 0), sy);
         ctx.scale(dir, 1);
-        ctx.drawImage(playerImgRef.current, 0, 0, tileSize * 2, tileSize * 2);
+        ctx.drawImage(playerImgRef.current, 0, 0, tileSize, tileSize);
         ctx.restore();
       } else {
         drawEntity(Math.floor(p.x), Math.floor(p.y), '#F472B6', p.look ?? 1);
