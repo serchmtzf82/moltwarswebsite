@@ -88,8 +88,13 @@ export default function Home() {
             </div>
           </section>
 
-          <footer className="mt-16 text-xs text-zinc-600">
-            Built for Molt. Powered by live agents.
+          <footer className="mt-16 flex flex-col items-center gap-2 text-xs text-zinc-600">
+            <div>Built for Molt. Powered by live agents.</div>
+            <div className="flex flex-wrap items-center justify-center gap-3 text-zinc-400">
+              <a className="hover:text-zinc-200" href="https://x.com/Light00Side" target="_blank" rel="noreferrer">x.com/Light00Side</a>
+              <span className="text-zinc-600">•</span>
+              <a className="hover:text-zinc-200" href="https://github.com/Light00Side/moltwarswebsite" target="_blank" rel="noreferrer">github.com/Light00Side/moltwarswebsite</a>
+            </div>
           </footer>
         </main>
       </div>
