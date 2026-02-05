@@ -277,7 +277,7 @@ export default function WorldPage() {
       };
     };
 
-    const drawEntity = (x: number, y: number, color: string) => {
+    const drawEntity = (x: number, y: number, color: string, look: number = 1) => {
       const { sx, sy } = toScreen(x, y);
       if (sx < 0 || sy < 0 || sx >= canvas.width || sy >= canvas.height) return;
       ctx.fillStyle = color;
@@ -285,11 +285,16 @@ export default function WorldPage() {
       ctx.strokeStyle = '#ffffff66';
       ctx.lineWidth = 1;
       ctx.strokeRect(sx + 0.5, sy + 0.5, tileSize - 1, tileSize - 1);
+      // look indicator
+      ctx.fillStyle = '#ffffff';
+      const eyeX = look === 0 ? sx + 2 : sx + tileSize - 4;
+      const eyeY = sy + 2;
+      ctx.fillRect(eyeX, eyeY, 2, 2);
     };
 
     animals.forEach((a) => drawEntity(Math.floor(a.x), Math.floor(a.y), '#F59E0B'));
     npcs.forEach((n) => drawEntity(Math.floor(n.x), Math.floor(n.y), '#22D3EE'));
-    players.forEach((p) => drawEntity(Math.floor(p.x), Math.floor(p.y), '#F472B6'));
+    players.forEach((p) => drawEntity(Math.floor(p.x), Math.floor(p.y), '#F472B6', p.look ?? 1));
 
     // bubble cleanup
     const now = Date.now();
